@@ -1,0 +1,11 @@
+-r ../base/requirements.txt
+
+pytest
+pytest-django
+pytest-cov
+mixer
+pylint
+behave-django
+jsonpath-ng
+autopep8
+flake8

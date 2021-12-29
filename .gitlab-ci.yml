@@ -1,0 +1,24 @@
+before_script:
+  - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.gitlab.com
+  
+stages:
+  - run_tests
+  - build_image
+  
+build_image:
+  stage: build_image
+  script:
+    - docker build -t registry.gitlab.com/PeterRichard/demo_project:latest .
+    - docker push registry.gitlab.com/PeterRichard/demo_project:latest
+  only:
+    - master
+
+run_tests:
+  stage: run_tests
+  variables:
+    DJANGO_SETTINGS_MODULE: demo_project.settings.test
+  script:
+    - pip install -r requirements/test/requirements.txt
+    - flake8 .
+    - pytest
+    - ./manage.py behave

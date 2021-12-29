@@ -1,0 +1,50 @@
+version: '3.7'
+
+services:
+  demo_project:
+    image: registry.gitlab.com/PeterRichard/demo_project:latest
+    networks:
+      - traefik
+      - demo_project_net
+    environment:
+      DB_HOST: pgsql
+      DB_USER: postgres
+      DEMO_PROJECT_DB_PASSWORD: s7RXvwMyR9WfQmx88evkhUk85
+      DB_NAME: demo_project
+    deploy:
+      replicas: 2
+      labels:
+        traefik.enable: 'true'
+        traefik.http.services.demo_project.loadbalancer.server.port: '80'
+
+        swarmpit.service.deployment.autoredeploy: 'true'
+
+        traefik.http.routers.demo_project-https.tls: 'true'
+        traefik.http.routers.demo_project-https.rule: Host(`localhost`)
+        traefik.http.routers.demo_project-https.entrypoints: https
+        traefik.http.routers.demo_project-https.service: demo_project
+        traefik.http.routers.demo_project-https.tls.certresolver: letsencrypt
+
+        traefik.http.routers.demo_project-http.entrypoints: http
+        traefik.http.routers.demo_project-http.rule: Host(`localhost`)
+        traefik.http.routers.demo_project-http.service: demo_project
+        traefik.http.routers.demo_project-http.middlewares: demo_project-https-redirect
+        traefik.http.middlewares.demo_project-https-redirect.redirectscheme.scheme: https
+
+  pgsql:
+    image: postgres
+    networks:
+      - demo_project_net
+    environment:
+      POSTGRES_PASSWORD: s7RXvwMyR9WfQmx88evkhUk85
+      POSTGRES_DB: demo_project
+    volumes:
+      - demo_project_data:/var/lib/postgresql/data
+
+networks:
+  demo_project_net:
+  traefik:
+    external: true
+
+volumes:
+  demo_project_data:
